@@ -1,0 +1,50 @@
+---
+name: Streaker!
+
+"on":
+  schedule:
+    - cron: 42 */11 * * *
+
+  workflow_dispatch:
+
+jobs:
+  streaker:
+    runs-on: ubuntu-latest
+
+    container:
+      image: mcr.microsoft.com/playwright:v1.46.0
+
+    steps:
+      - name: Run thetastreak
+        env:
+          TG_USERNAME: ${{ env.TG_USERNAME }}
+          TG_PASSWORD: ${{ secrets.TG_PASSWORD }}
+          run: > # use playwright javascript to login to thetagang.com
+            node -e '
+              import { firefox } from "playwright";
+
+              (async () => {
+                const username = process.env.TG_USERNAME;
+                const password = process.env.TG_PASSWORD;
+                const options = { exact: true };
+
+                const browser = await firefox.launch();
+                const context = await browser.newContext();
+                const page = await context.newPage();
+
+                await page.goto("https://www.thetagang.com/login");
+
+                await page.getByPlaceholder("username", options).fill(username);
+                await page.getByPlaceholder("password", options).fill(password);
+                await page.getByRole("button", { name: "Login" }).click();
+                await page.waitForURL("https://www.thetagang.com");
+
+                await page.locator("[id="C"]").getByText("About").click();
+                await page.waitForURL("https://www.thetagang.com/about");
+                await page.getByText("Home").click();
+                await page.waitForURL("https://www.thetagang.com");
+
+                await page.close();
+                await context.close();
+                await browser.close();
+              })();
