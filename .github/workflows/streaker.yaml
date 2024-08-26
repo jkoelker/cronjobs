@@ -33,11 +33,6 @@ jobs:
               const context = await browser.newContext();
               const page = await context.newPage();
 
-              const goto = async (url) => {
-                const response = await page.goto(url);
-                if (!response.ok()) throw new Error(`Failed to load ${url}`);
-              };
-
               await page.goto("https://www.thetagang.com/login");
 
               const usernameInput = page.getByPlaceholder("username", options);
@@ -45,14 +40,16 @@ jobs:
 
               await usernameInput.click();
               await usernameInput.fill(username);
+
               await passwordInput.click();
               await passwordInput.fill(password);
-              await page.keyboard.press("Enter");
 
-              await goto("https://www.thetagang.com/discover");
-              await goto("https://www.thetagang.com/tracker");
-              await goto("https://www.thetagang.com/about");
-              await goto("https://www.thetagang.com/");
+              await page.getByRole("button", { name: "Login" }).click();
+
+              await page.locator("[id=\"C\"]").getByText("Discover").click();
+              await page.locator("[id=\"C\"]").getByText("Tracker").click();
+              await page.locator("[id=\"C\"]").getByText("About").click();
+              await page.getByText("Home").click();
 
               await page.close();
               await context.close();
