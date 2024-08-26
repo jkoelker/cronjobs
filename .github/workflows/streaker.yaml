@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Run Streaker!
         env:
-          TG_USERNAME: ${{ env.TG_USERNAME }}
+          TG_USERNAME: ${{ vars.TG_USERNAME }}
           TG_PASSWORD: ${{ secrets.TG_PASSWORD }}
         run: >
           npm install playwright &&
@@ -29,6 +29,14 @@ jobs:
               const password = process.env.TG_PASSWORD;
               const options = { exact: true };
 
+              if (!username) {
+                throw new Error("Missing username!");
+              }
+
+              if (!password) {
+                throw new Error("Missing password!");
+              }
+
               const browser = await chromium.launch();
               const context = await browser.newContext();
               const page = await context.newPage();
@@ -36,20 +44,22 @@ jobs:
               await page.goto("https://www.thetagang.com/login");
 
               const usernameInput = page.getByPlaceholder("username", options);
-              const passwordInput = page.getByPlaceholder("password", options);
-
               await usernameInput.click();
               await usernameInput.fill(username);
 
+              const passwordInput = page.getByPlaceholder("password", options);
               await passwordInput.click();
               await passwordInput.fill(password);
+              await passwordInput.press("Enter");
 
-              await page.getByRole("button", { name: "Login" }).click();
+              const elements = ["Discover", "Tracker", "About"];
+              for (const element of elements) {
+                await page.locator("[id=\"C\"]").getByText(element).click();
+              }
 
-              await page.locator("[id=\"C\"]").getByText("Discover").click();
-              await page.locator("[id=\"C\"]").getByText("Tracker").click();
-              await page.locator("[id=\"C\"]").getByText("About").click();
               await page.getByText("Home").click();
+
+              await page.reload();
 
               await page.close();
               await context.close();
