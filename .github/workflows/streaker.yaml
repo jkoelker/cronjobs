@@ -41,14 +41,22 @@ jobs:
               const context = await browser.newContext();
               const page = await context.newPage();
 
-              await page.goto("https://www.thetagang.com/login");
+              await page.goto("https://www.thetagang.com/login", { waitUntil: "domcontentloaded" });
 
+              // Dismiss campaign modal if present (new overlay blocking login form)
+              try {
+                const modalClose = page.locator("[id=\"headlessui-portal-root\"] button, [id=\"headlessui-portal-root\"] [aria-label*=\"close\" i], [id=\"headlessui-portal-root\"] [aria-label*=\"Close\" i]").first();
+                await modalClose.click({ timeout: 3000 });
+              } catch {
+                // No modal or close button not found - try pressing Escape as fallback
+                await page.keyboard.press("Escape");
+              }
+
+              // Use fill() directly - it auto-focuses, avoiding pointer-intercept issues
               const usernameInput = page.getByPlaceholder("username", options);
-              await usernameInput.click();
               await usernameInput.fill(username);
 
               const passwordInput = page.getByPlaceholder("password", options);
-              await passwordInput.click();
               await passwordInput.fill(password);
               await passwordInput.press("Enter");
 
