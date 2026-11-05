@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: mcr.microsoft.com/playwright:v1.64.1
+      image: mcr.microsoft.com/playwright:v1.65.0
 
     steps:
       - name: Run Streaker!
